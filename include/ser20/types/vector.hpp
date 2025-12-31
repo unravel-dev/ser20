@@ -35,6 +35,46 @@
 #include <vector>
 
 namespace ser20 {
+
+struct vector_serialization_context
+{
+
+    void begin_element_serialization(size_t index)
+    {
+        if(on_element_serialization_begin)
+        {
+            on_element_serialization_begin(index);
+        }
+    }
+
+    void end_element_serialization(size_t index)
+    {
+        if(on_element_serialization_end)
+        {
+            on_element_serialization_end(index);
+        }
+    }
+
+    bool should_serialize_element_at(size_t index)
+    {
+        if(should_serialize_element)
+        {
+            return should_serialize_element(index);
+        }
+        return true;
+    }
+
+    std::function<void(size_t index)> on_element_serialization_begin;
+    std::function<void(size_t index)> on_element_serialization_end;
+    std::function<bool(size_t index)> should_serialize_element;
+};
+
+inline auto get_vector_serialization_context() -> vector_serialization_context&
+{
+    static thread_local vector_serialization_context context;
+    return context;
+}
+
 //! Serialization for std::vectors of arithmetic (but not bool) using binary
 //! serialization, if supported
 template <class Archive, class T, class A>
@@ -90,8 +130,19 @@ SER20_LOAD_FUNCTION_NAME(Archive& ar, std::vector<T, A>& vector) requires(
   ar(make_size_tag(size));
 
   vector.resize(static_cast<std::size_t>(size));
+  auto& context = get_vector_serialization_context();
+
+  size_t index = 0;
   for (auto&& v : vector)
-    ar(v);
+  {
+    context.begin_element_serialization(index);
+    if(context.should_serialize_element_at(index))
+    {
+      ar(v);
+    }
+    context.end_element_serialization(index);
+    index++;
+  }
 }
 
 //! Serialization for bool vector types
