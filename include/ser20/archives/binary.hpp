@@ -163,8 +163,11 @@ private:
   std::streamsize flush(char* data, std::streamsize size) {
     auto size_to_read =
         std::min<std::streamsize>(bufferEnd - bufferStart, size);
-    std::memcpy(data, itsBuffer.data() + bufferStart, size_to_read);
-    bufferStart += size_to_read;
+    if(size_to_read > 0)
+    {
+      std::memcpy(data, itsBuffer.data() + bufferStart, size_to_read);
+      bufferStart += size_to_read;
+    }
     return size_to_read;
   }
 
