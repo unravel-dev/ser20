@@ -370,6 +370,18 @@ template <class Archive, class T> struct InputBindingCreator {
       Archive& ar = *static_cast<Archive*>(arptr);
       std::shared_ptr<T> ptr;
 
+      if (dptr) {
+        auto const* mapping = PolymorphicCasters::lookup(
+            std::type_index(baseInfo), std::type_index(typeid(T)));
+        if (mapping) {
+          void const* raw = dptr.get();
+          for (auto const* caster : *mapping)
+            raw = caster->downcast(raw);
+          if (raw)
+            ptr = std::shared_ptr<T>(dptr, const_cast<T*>(static_cast<T const*>(raw)));
+        }
+      }
+
       ar(SER20_NVP_("ptr_wrapper",
                      ::ser20::memory_detail::make_ptr_wrapper(ptr)));
 

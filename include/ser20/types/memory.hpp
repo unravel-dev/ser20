@@ -328,12 +328,17 @@ inline void SER20_LOAD_FUNCTION_NAME(
   ar(SER20_NVP_("id", id));
 
   if (id & detail::msb_32bit) {
-    using NonConstT = std::remove_const_t<T>;
-    std::shared_ptr<NonConstT> ptr(
-        detail::Construct<NonConstT, Archive>::load_andor_construct());
-    ar.registerSharedPointer(id, ptr);
-    ar(SER20_NVP_("data", *ptr));
-    wrapper.ptr = std::move(ptr);
+    if (wrapper.ptr) {
+      ar.registerSharedPointer(id, wrapper.ptr);
+      ar(SER20_NVP_("data", *wrapper.ptr));
+    } else {
+      using NonConstT = std::remove_const_t<T>;
+      std::shared_ptr<NonConstT> ptr(
+          detail::Construct<NonConstT, Archive>::load_andor_construct());
+      ar.registerSharedPointer(id, ptr);
+      ar(SER20_NVP_("data", *ptr));
+      wrapper.ptr = std::move(ptr);
+    }
   } else
     wrapper.ptr = std::static_pointer_cast<T>(ar.getSharedPointer(id));
 }

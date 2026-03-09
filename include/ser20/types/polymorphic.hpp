@@ -399,7 +399,7 @@ inline void SER20_LOAD_FUNCTION_NAME(
     return;
 
   auto binding = polymorphic_detail::getInputBinding(ar, nameid);
-  std::shared_ptr<void> result;
+  std::shared_ptr<void> result = ptr ? std::static_pointer_cast<void>(ptr) : nullptr;
   binding.shared_ptr(&ar, result, typeid(T));
   ptr = std::static_pointer_cast<T>(result);
 }
