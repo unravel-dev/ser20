@@ -568,6 +568,37 @@ private:
                       std::string(searchName) + ") not found");
     }
 
+    //! Is there a member with this name at this level? Does not move the iterator.
+    /*! The non-throwing counterpart to the lookup half of search(). Callers that treat a
+        missing name as ordinary - an absent optional field - can ask first rather than pay
+        for a throw to find out.
+
+        Deliberately a membership test over the whole level, not a comparison against
+        name(): readers legitimately skip fields without consuming them, which leaves the
+        cursor behind the name being asked for. Starts at the cursor, since members are
+        normally read in the order they were written, then wraps to the head.
+
+        Answers true for non-Member nodes, where names are not used for lookup. */
+    bool contains(const char* searchName) const {
+      if (itsType != Member)
+        return true;
+
+      const auto len = std::strlen(searchName);
+      const auto matches = [&](size_t index) {
+        const auto currentName = itsMemberItBegin[index].name.GetString();
+        return std::strncmp(searchName, currentName, len) == 0 &&
+               std::strlen(currentName) == len;
+      };
+
+      for (size_t i = itsIndex; i < itsSize; ++i)
+        if (matches(i))
+          return true;
+      for (size_t i = 0; i < itsIndex && i < itsSize; ++i)
+        if (matches(i))
+          return true;
+      return false;
+    }
+
   private:
     MemberIterator itsMemberItBegin,
         itsMemberItEnd;            //!< The member iterator (object)
@@ -644,6 +675,25 @@ public:
   //! Retrieves the current node name
   /*! @return nullptr if no name exists */
   const char* getNodeName() const { return itsIteratorStack.back().name(); }
+
+  //! Is a member with this name available at the current level?
+  /*! Lets a caller distinguish "absent" from "present" without provoking the exception
+      that search() throws, which is otherwise the only way this archive can report a miss.
+      Intended for genuinely optional fields, where absence is expected rather than
+      exceptional. Does not move the read position, so a true answer must still be followed
+      by the normal load.
+
+      Note this is a membership test, not a comparison against getNodeName(): a caller that
+      skips a field without reading it leaves the cursor behind, and the next name it asks
+      for is then legitimately ahead of the cursor.
+
+      Returns true when the current node is not an object, where names are not used to
+      address elements. */
+  bool hasNextName(const char* name) const {
+    if (!name || itsIteratorStack.empty())
+      return true;
+    return itsIteratorStack.back().contains(name);
+  }
 
   //! Sets the name for the next node created with startNode
   void setNextName(const char* name) { itsNextName = name; }

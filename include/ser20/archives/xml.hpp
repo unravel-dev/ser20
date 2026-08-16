@@ -534,6 +534,45 @@ public:
   //! will return @c nullptr if the node does not have a name
   const char* getNodeName() const { return itsNodes.top().getChildName(); }
 
+  //! Is a child with this name available at the current level?
+  /*! Lets a caller distinguish "absent" from "present" without provoking the exception
+      startNode() throws when an NVP names a node that is not there. Intended for genuinely
+      optional fields, where absence is expected rather than exceptional. Does not move the
+      read position, so a true answer must still be followed by the normal load.
+
+      Note this is a membership test, not a comparison against getNodeName(): a caller that
+      skips a field without reading it leaves the cursor on an earlier sibling, and the
+      next name it asks for is then legitimately further along.
+
+      NodeInfo::search already reports a miss by returning nullptr rather than throwing,
+      but it also repositions the cursor on a hit, so this walks the children itself and
+      leaves the NodeInfo untouched. */
+  bool hasNextName(const char* name) const {
+    if (!name || itsNodes.empty())
+      return true;
+
+    const auto& top = itsNodes.top();
+    if (top.node == nullptr)
+      return true;
+
+    const size_t name_size = rapidxml::internal::measure(name);
+    const auto matches = [&](const rapidxml::xml_node<>* n) {
+      return rapidxml::internal::compare(n->name(), n->name_size(), name,
+                                         name_size, true);
+    };
+
+    // The child we would read next: nodes are normally read in written order, so
+    // this is the usual answer.
+    if (top.child != nullptr && matches(top.child))
+      return true;
+
+    for (auto* n = top.node->first_node(); n != nullptr; n = n->next_sibling())
+      if (matches(n))
+        return true;
+
+    return false;
+  }
+
   //! Sets the name for the next node created with startNode
   void setNextName(const char* name) { itsNodes.top().name = name; }
 

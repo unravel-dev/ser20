@@ -626,6 +626,34 @@ private:
                       std::string(searchName) + ") not found");
     }
 
+    // Is there a member with this name at this level? Does not move the iterator.
+    //
+    // The non-throwing counterpart to the lookup half of search(). Callers that treat a
+    // missing name as ordinary - an absent optional field - can ask first instead of
+    // paying for a throw to find out, which on Windows costs microseconds rather than
+    // nanoseconds. Answers true for non-object nodes so that array elements, where NVP
+    // names are not used for lookup at all, are never blocked by this check.
+    bool contains(const char* searchName) const {
+      if (itsType != Type::Object) {
+        return true;
+      }
+
+      // Start where we are: members are normally read in the order they were written, so
+      // the answer is usually the current node or just after it. Falls back to the head
+      // of the object, which is what search() would do.
+      for (auto it = itsObjectItCurrent; it != itsObjectItEnd; ++it) {
+        if (it.key_equals(searchName)) {
+          return true;
+        }
+      }
+      for (auto it = itsObjectItBegin; it != itsObjectItCurrent; ++it) {
+        if (it.key_equals(searchName)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     // Check if iterator is valid (not at end)
     bool isValid() const {
       if (itsType == Type::Array)
@@ -667,6 +695,23 @@ public:
   }
 
   const char* getNodeName() const { return itsIteratorStack.back().name(); }
+
+  //! Is a member with this name available at the current level?
+  /*! Lets a caller distinguish "absent" from "present" without provoking the exception
+      that search() throws, which is the only way this archive can otherwise report a
+      miss. Intended for genuinely optional fields, where absence is expected rather than
+      exceptional - probing a set of possible names, or reading a file written by an older
+      version. Does not move the read position, so a true answer must still be followed by
+      the normal load.
+
+      Returns true when the current node is not an object: NVP names are not used to
+      address array elements, so this check must not stand in their way. */
+  bool hasNextName(const char* name) const {
+    if (!name || itsIteratorStack.empty()) {
+      return true;
+    }
+    return itsIteratorStack.back().contains(name);
+  }
 
   void setNextName(const char* name) { itsNextName = name; }
 
