@@ -74262,7 +74262,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -90178,7 +90178,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -106571,7 +106571,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -122964,7 +122964,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -139472,7 +139472,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -156287,7 +156287,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -172592,7 +172592,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -188920,7 +188920,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
@@ -205251,7 +205251,7 @@ struct key_selector {
      * It allocates a std::string and is meant for documentation, debugging and
      * tests, not for any hot path.
      */
-    static constexpr std::string describe() {
+    static std::string describe() {
         std::string s;
         s += "key_selector: ";
         key_selector_detail::append_uint(s, N);
