@@ -534,6 +534,23 @@ public:
   //! will return @c nullptr if the node does not have a name
   const char* getNodeName() const { return itsNodes.top().getChildName(); }
 
+  //! How many nodes deep the read position is, counting the root node.
+  /*! Pairs with restoreNodeDepth(): a caller that carries on after a failed load records
+      the depth before it, so it can get back to its own node however deep the failure
+      was. */
+  std::size_t getNodeDepth() const { return itsNodes.size(); }
+
+  //! Finishes the nodes that a failed load entered and never finished.
+  /*! A throw between startNode() and finishNode() leaves the child node current, so a
+      caller that carries on would look for its next names inside that child and find
+      none of them. Finishes every node deeper than depth, as their loads would have;
+      does nothing when the read position is not deeper. */
+  void restoreNodeDepth(std::size_t depth) {
+    while (itsNodes.size() > depth) {
+      finishNode();
+    }
+  }
+
   //! Is a child with this name available at the current level?
   /*! Lets a caller distinguish "absent" from "present" without provoking the exception
       startNode() throws when an NVP names a node that is not there. Intended for genuinely
